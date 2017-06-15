@@ -24,6 +24,21 @@ bin/pip: bin/python
 bin/python:
 	$(python) -m venv --without-pip .
 
+test: all bin/coverage bin/flake8 bin/check-manifest
+	bin/coverage run setup.py test
+	bin/coverage html
+	bin/coverage report --fail-under=100
+	bin/flake8 setup.py spark
+	bin/check-manifest || ! test -d .git
+	bin/python setup.py check
+bin/coverage: bin/pip
+	bin/pip install coverage
+bin/flake8: bin/pip
+	bin/pip install flake8
+bin/check-manifest: bin/pip
+	bin/pip install check-manifest
+
 clean:
 	rm -rf $(shell find spark -name "__pycache__")
 	rm -rf *.egg-info *.egg bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
+	rm -rf htmlcov .coverage 

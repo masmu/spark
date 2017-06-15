@@ -9,3 +9,5 @@ __pycache__/
 /pip-selfcheck.json
 /build/
 /share/
+/htmlcov/
+/.coverage

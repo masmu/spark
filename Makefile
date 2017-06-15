@@ -38,7 +38,15 @@ bin/flake8: bin/pip
 bin/check-manifest: bin/pip
 	bin/pip install check-manifest
 
+docs: all bin/pdoc bin/pygmentize spark/** setup.py
+	bin/pdoc --html --only-pypath --html-dir ./docs --overwrite spark spark
+bin/pdoc: bin/pip
+	bin/pip install pdoc
+bin/pygmentize: bin/pip
+	bin/pip install pygments
+
 clean:
 	rm -rf $(shell find spark -name "__pycache__")
 	rm -rf *.egg-info *.egg bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
-	rm -rf htmlcov .coverage 
+	rm -rf htmlcov .coverage
+	rm -rf docs

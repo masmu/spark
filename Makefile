@@ -45,8 +45,14 @@ bin/pdoc: bin/pip
 bin/pygmentize: bin/pip
 	bin/pip install pygments
 
+tox: bin/tox
+	bin/tox -c tox.ini
+bin/tox: bin/pip
+	bin/pip install tox
+
 clean:
 	rm -rf $(shell find spark -name "__pycache__")
 	rm -rf *.egg-info *.egg bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
 	rm -rf htmlcov .coverage
 	rm -rf docs
+	rm -rf .tox

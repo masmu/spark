@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 python ?= python3.4
+user ?= $(shell whoami)
 
 all: spark.egg-info
 
@@ -57,9 +58,27 @@ man/spark.1: spark.egg-info
 	export USE_PKG_VERSION=1; \
 	help2man -n "$(shell bin/python3 setup.py --description)" bin/spark > man/spark.1
 
+ifdef DEB_HOST_ARCH
+DESTDIR ?= /
+PREFIX ?= usr/
+install:
+	$(python) setup.py install --no-compile --prefix="$(PREFIX)" --root="$(DESTDIR)" --install-layout=deb
+else
+DESTDIR ?= /
+PREFIX ?= /usr/local
+install:
+	$(python) setup.py install --no-compile --prefix="$(PREFIX)"
+endif
+
+deb: man
+	pdebuild --buildresult dist
+	lintian --pedantic dist/*.deb dist/*.dsc dist/*.changes
+	sudo chown -R $(user) dist/
+
 clean:
 	rm -rf $(shell find spark -name "__pycache__")
 	rm -rf *.egg-info *.egg .eggs bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
 	rm -rf htmlcov .coverage
 	rm -rf docs
 	rm -rf .tox
+	rm -rf build dist

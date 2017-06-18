@@ -7,3 +7,10 @@ include tox.ini
 include requirements.txt
 include requirements-venv.txt
 include requirements-test.txt
+include debian/changelog
+include debian/compat
+include debian/control
+include debian/copyright
+include debian/rules
+include debian/source
+include debian/source/format

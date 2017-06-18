@@ -44,7 +44,7 @@ setuptools.setup(
     ],
     install_requires=load_requirements('requirements.txt'),
     test_suite='spark.tests',
-    tests_require=load_requirements('requirements-tests.txt'),
+    tests_require=load_requirements('requirements-test.txt'),
     entry_points={
         'console_scripts': [
             'spark = spark.__main__:main',

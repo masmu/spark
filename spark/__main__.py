@@ -17,7 +17,8 @@
 spark
 
 Usage:
-    spark (--help | --version)
+    spark [--help | --version]
+    spark [--debug]
 
 Options:
     --help -h      display this help message and exit
@@ -28,17 +29,31 @@ Options:
 import sys
 import docopt
 import spark
+import logging
 
 
 def main(argv=sys.argv[1:]):
     try:
-        docopt.docopt(__doc__, argv=argv, version=spark.__version__)
+        options = docopt.docopt(__doc__, argv=argv, version=spark.__version__)
     except docopt.DocoptExit as e:
         print(str(e), file=sys.stderr)
         return 2
     except SystemExit as e:
         return 0
 
+    level = logging.DEBUG
+    if not options['--debug']:
+        level = logging.INFO
 
-if __name__ == "__main__":  # pragma: no cover
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s %(name)-46s %(levelname)-8s %(message)s',
+        datefmt='%m-%d %H:%M:%S')
+    logger = logging.getLogger('spark.__main__')
+
+    logger.info('Version: {}'.format(spark.__version_info__))
+    return 0
+
+
+if __name__ == '__main__':  # pragma: no cover
     sys.exit(main())

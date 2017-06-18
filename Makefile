@@ -19,6 +19,7 @@ all: spark.egg-info
 
 spark.egg-info: setup.py bin/pip
 	bin/pip install --editable . && touch $@
+	bin/pip install -r requirements-venv.txt
 bin/pip: bin/python
 	curl https://bootstrap.pypa.io/get-pip.py | bin/python
 bin/python:
@@ -50,9 +51,15 @@ tox: bin/tox
 bin/tox: bin/pip
 	bin/pip install tox
 
+man: man/spark.1
+
+man/spark.1: spark.egg-info
+	export USE_PKG_VERSION=1; \
+	help2man -n "$(shell bin/python3 setup.py --description)" bin/spark > man/spark.1
+
 clean:
 	rm -rf $(shell find spark -name "__pycache__")
-	rm -rf *.egg-info *.egg bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
+	rm -rf *.egg-info *.egg .eggs bin lib lib64 include share pyvenv.cfg pip-selfcheck.json
 	rm -rf htmlcov .coverage
 	rm -rf docs
 	rm -rf .tox

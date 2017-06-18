@@ -16,20 +16,74 @@
 import unittest
 import unittest.mock
 import pkg_resources
+import gitant
 import spark
 
 
-distribution = pkg_resources.get_distribution("spark")
-main = distribution.load_entry_point("console_scripts", "spark")
+distribution = pkg_resources.get_distribution('spark')
+main = distribution.load_entry_point('console_scripts', 'spark')
 
 
 class DistributionTest(unittest.TestCase):
 
-    @unittest.mock.patch("builtins.print")
-    def test_options(self, print):
-        self.assertEqual(main(["--invalid-argument"]), 2)
-        self.assertEqual(main(["--help"]), 0)
+    def setUp(self):
+        logger_patch = unittest.mock.patch('logging.getLogger')
+        self.addCleanup(logger_patch.stop)
+        self.logger_mock = logger_patch.start()
 
-    def test_version(self):
-        self.assertEqual(spark.__version__, distribution.version)
-        self.assertRegex(spark.__version__, r'\d+\.\d+\.\d+')
+    @unittest.mock.patch('builtins.print')
+    def test_options(self, print_mock):
+        self.assertEqual(main([]), 0)
+        self.assertEqual(main(['--debug']), 0)
+        self.assertEqual(main(['--help']), 0)
+        self.assertEqual(main(['--invalid-argument']), 2)
+
+    def test_get_distribution_version(self):
+        self.assertEqual(
+            spark.get_distribution_version(), distribution.version)
+
+    @unittest.mock.patch('pkg_resources.get_distribution')
+    def test_get_distribution_version_not_found(self, get_distribution):
+        get_distribution.side_effect = pkg_resources.DistributionNotFound()
+        self.assertEqual(spark.get_distribution_version(), 'unknown')
+
+    @unittest.mock.patch('gitant.Repository')
+    def test_get_git_branch_rev(self, git_repo):
+        git_repo.return_value.branch = 'branch'
+        git_repo.return_value.revision = 'rev'
+        self.assertEqual(spark.get_git_branch_rev(), ('branch', 'rev'))
+
+    @unittest.mock.patch.dict('sys.modules', {'gitant': None})
+    def test_get_git_branch_rev_import_error(self):
+        self.assertEqual(spark.get_git_branch_rev(), (None, None))
+
+    @unittest.mock.patch('gitant.Repository')
+    def test_get_git_branch_rev_invalid_repo(self, git_repo):
+        git_repo.side_effect = gitant.GitDirectoryNotFoundException()
+        self.assertEqual(spark.get_git_branch_rev(), (None, None))
+
+    @unittest.mock.patch('spark._format_info_version')
+    @unittest.mock.patch('spark._format_semantic_version')
+    @unittest.mock.patch('spark.get_distribution_version')
+    @unittest.mock.patch('spark.get_git_branch_rev')
+    def test_version(
+            self, get_git_branch_rev, get_distribution_version,
+            _format_semantic_version, _format_info_version):
+        get_distribution_version.return_value = 'version'
+        get_git_branch_rev.return_value = ('branch', 'rev')
+        spark.get_versions()
+        _format_semantic_version.assert_called_once_with('version', 'rev')
+        _format_info_version.assert_called_once_with(
+            'version', 'rev', 'branch')
+
+    @unittest.mock.patch('spark._format_info_version')
+    @unittest.mock.patch('spark._format_semantic_version')
+    @unittest.mock.patch('spark.get_distribution_version')
+    @unittest.mock.patch.dict('os.environ', {'USE_PKG_VERSION': '1'})
+    def test_version_use_pkg_version(
+            self, get_distribution_version,
+            _format_semantic_version, _format_info_version):
+        get_distribution_version.return_value = 'version'
+        spark.get_versions()
+        _format_semantic_version.assert_called_once_with('version')
+        _format_info_version.assert_called_once_with('version')

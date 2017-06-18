@@ -13,36 +13,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import setuptools
+import pip.req
+
+
+def load_requirements(file_path):
+    if os.path.exists(file_path):
+        return [
+            str(package.req) for package in pip.req.parse_requirements(
+                file_path, session=pip.download.PipSession())]
+    else:
+        return []
+
 
 setuptools.setup(
-    name="spark",
+    name='spark',
     version='0.0.0',
-    author="Massimo Mund",
-    author_email="massimo.mund@lancode.de",
-    url="https://github.com/masmu/spark/",
-    description="Python project pattern",
-    long_description="A python3 project pattern.",
+    author='Massimo Mund',
+    author_email='massimo.mund@lancode.de',
+    url='https://github.com/masmu/spark/',
+    description='Python project pattern',
+    long_description='A python3 project pattern.',
     packages=setuptools.find_packages(),
-    license="GPLv3",
-    platforms="Debian GNU/Linux",
+    license='GPLv3',
+    platforms='Debian GNU/Linux',
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
     ],
-    install_requires=[
-        "docopt >=0.6.2",
-    ],
+    install_requires=load_requirements('requirements.txt'),
+    test_suite='spark.tests',
+    tests_require=load_requirements('requirements-tests.txt'),
     entry_points={
-        "console_scripts": [
-            "spark = spark.__main__:main",
+        'console_scripts': [
+            'spark = spark.__main__:main',
         ]
     },
     data_files=[
-        ("share/man/man1", ["man/spark.1"]),
+        ('share/man/man1', ['man/spark.1']),
     ],
     package_data={
-        "spark": [
+        'spark': [
         ],
     },
 )

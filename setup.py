@@ -15,14 +15,20 @@
 
 import os
 import setuptools
-import pip.req
+
+try:
+    from pip._internal.req import parse_requirements
+    from pip._internal.download import PipSession
+except ImportError:  # for pip <= 9.0.3
+    from pip.req import parse_requirements
+    from pip.download import PipSession
 
 
 def load_requirements(file_path):
     if os.path.exists(file_path):
         return [
-            str(package.req) for package in pip.req.parse_requirements(
-                file_path, session=pip.download.PipSession())]
+            str(package.req) for package in parse_requirements(
+                file_path, session=PipSession())]
     else:
         return []
 

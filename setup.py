@@ -16,19 +16,16 @@
 import os
 import setuptools
 
-try:
-    from pip._internal.req import parse_requirements
-    from pip._internal.download import PipSession
-except ImportError:  # for pip <= 9.0.3
-    from pip.req import parse_requirements
-    from pip.download import PipSession
+
+def parse_requirements(filename):
+    """ load requirements from a pip requirements file """
+    lineiter = (line.strip() for line in open(filename))
+    return [line for line in lineiter if line and not line.startswith("#")]
 
 
 def load_requirements(file_path):
     if os.path.exists(file_path):
-        return [
-            str(package.req) for package in parse_requirements(
-                file_path, session=PipSession())]
+        return parse_requirements(file_path)
     else:
         return []
 
@@ -46,7 +43,7 @@ setuptools.setup(
     platforms='Debian GNU/Linux',
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.8',
     ],
     install_requires=load_requirements('requirements.txt'),
     test_suite='spark.tests',
